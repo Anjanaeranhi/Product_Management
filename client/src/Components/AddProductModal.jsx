@@ -96,7 +96,7 @@ const AddProductModal = ({ show, handleClose }) => {
                 </Col>
               </Form.Group>
 
-              <Form.Group as={Row} className="align-items-center mb-3">
+              {/* <Form.Group as={Row} className="align-items-center mb-3">
                 <Form.Label column sm={4} className="mb-0 fw-semibold">Category :</Form.Label>
                 <Col sm={8}>
                   <Form.Control
@@ -107,7 +107,7 @@ const AddProductModal = ({ show, handleClose }) => {
                     onChange={(e) => setCategory(e.target.value)}
                   />
                 </Col>
-              </Form.Group>
+              </Form.Group> */}
 
               <Form.Group as={Row} className="align-items-center mb-3">
                 <Form.Label column sm={4} className="mb-0 fw-semibold">Subcategory :</Form.Label>

@@ -10,6 +10,10 @@ import { api } from '../axios';
 import { FaHeart } from "react-icons/fa";
 
 const HomePage = () => {
+
+    const [searchItem, setSearchItem] = useState([]);
+    const [search, setSearch] = useState("");
+
     const [wishItems, setWishItems] = useState([]);
     const [expandedCategoryId, setExpandedCategoryId] = useState(null);
 
@@ -28,7 +32,10 @@ const HomePage = () => {
 
     const {userData} = useSelector(states => states.User);
     const dispatch = useDispatch();
-    // console.log("UserData>>", userData);
+    console.log("UserData>>", userData.user);
+    const userId = userData?.user?._id;
+    console.log("User Id",userId);
+    
 
     const handleOpenModal = () => setShowCategoryModal(true);
     const handleCloseModal = () => {
@@ -127,6 +134,39 @@ const HomePage = () => {
         }
         ShowProducts()
     },[])
+
+    const handleProduct = async(CatId, SubCatName) =>{
+        try {
+            console.log("Name", SubCatName);
+            
+            const {data} = await api.post("/getcarproduct", {CatId , SubCatName});
+            console.log(data);
+            
+        } catch (error) {
+            console.log(error);
+            toast.error(error?.response?.data?.message || "Something went wrong")
+        }
+    }
+    const handleSearch = (event) => {
+        const searchValue = event.target.value;
+        setSearch(searchValue);
+        const searchResults = product.filter((product) =>
+        product.title.toLowerCase().includes(searchValue.toLowerCase())
+        );
+        setSearchItem(searchResults);
+    };
+
+    const setRed = async ({ userId, item }) => {
+        try {
+        const response = await api.post("/wishlist", { userId, item });
+        toast.success(response.data.message);
+        const res = await api.get(`/wishlist/${userId}`);
+        setWishItems(res?.data);
+        } catch (error) {
+        console.log(error?.message);
+        toast.error(error?.message);
+        }
+    };
     
     return (
         <Fragment>
@@ -134,8 +174,8 @@ const HomePage = () => {
                 <div className='d-flex justify-content-center align-items-center' style={{ height: "70px", background: "#643959" }}>
                     <div className="w-25">
                         <div className="d-flex align-items-center rounded bg-white px-3" style={{ overflow: "hidden" }}>
-                            <input type="text" className="form-control border-0 " placeholder="Search any things" aria-label="Search"/>
-                            <button style={{marginRight:"-20px", background:"#F1AE32", color:"black"}} className="btn rounded px-4" type="button">Search</button>
+                            <input type="text" className="form-control border-0 " placeholder="Search any things" aria-label="Search" onChange={handleSearch}/>
+                            <button style={{marginRight:"-20px", background:"#F1AE32", color:"black"}} className="btn rounded px-4" type="button" >Search</button>
                         </div>
                     </div>
                     <div className=' d-flex ' style={{marginLeft:"30%"}}>
@@ -161,7 +201,7 @@ const HomePage = () => {
                     </div>
                 </div>
 
-                <div className='d-flex m-4' style={{height:"100vh"}}>
+                <div className='d-flex m-4' >
                     <div className='bg-light w-25 p-4'>
                     <p style={{color:"#643959"}}><strong>Categories</strong></p>
                     <p>All categories</p>
@@ -175,16 +215,19 @@ const HomePage = () => {
                         {expandedCategoryId === cat._id && (
                             <div className="ms-3 mt-2">
                             {subCateg.length > 0 ? (
-                                subCateg.map((subcat) => (
+                                subCateg.map((subcat, index) => (
                                 <div
-                                    key={subCateg._id}
+                                    key={index}
                                     className="px-2 py-1 bg-white rounded border mb-1"
+                                    onClick={() => {handleProduct({CatId : cat?._id, subcat})}}
                                 >
                                     {subcat}
+                                    
                                 </div>
+                                
                                 ))
                             ) : (
-                                <div className="text-muted">No subcategories found</div>
+                                <div className="text-muted">Empty</div>
                             )}
                             </div>
                         )}
@@ -192,8 +235,8 @@ const HomePage = () => {
                     ))}
                     </div>
 
-                    <div className="d-flex flex-wrap gap-4 ms-5">
-                        {product.map((item) => (
+                    <div className="d-flex flex-wrap gap-4 ms-5" style={{height:"100%"}}>
+                        {(search ? searchItem : product).map((item) => (
                             <Card key={item._id} style={{ width: '18rem' }}>
                                 
                             <Card.Img variant="top" src={`http://localhost:8080/uploads/${item.images[0]}`} alt='Image not found'/>
@@ -207,12 +250,12 @@ const HomePage = () => {
                                         className="fs-4"
                                         onClick={() => {
                                             const isWished = wishItems.find(
-                                            (item) => item?._id === product?._id
+                                            (product) => product?._id === item?._id
                                             );
                                             if (isWished) {
-                                            removeWishlist({ userId, productId: product?._id });
+                                            removeWishlist({ userId, productId: item?._id });
                                             } else {
-                                            setRed({ userId, product });
+                                            setRed({ userId, item });
                                             }
                                         }}
                                         style={{

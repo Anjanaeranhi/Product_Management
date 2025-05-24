@@ -12,7 +12,14 @@ const schema = Schema({
     password : {
         type : String,
         required : true
-    }
+    },
+    wishlist : [
+        {
+            id : Number,
+            name : String,
+            description : String,
+        }
+    ],
 }, { timestamps: true })
 
 const userModel = model("User", schema);

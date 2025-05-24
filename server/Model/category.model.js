@@ -7,7 +7,7 @@ const schema = Schema({
     },
     subcategory:{
         type: [String],
-        default: []
+        default: [],
     }
 })
 

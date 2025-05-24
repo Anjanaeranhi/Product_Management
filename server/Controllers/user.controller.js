@@ -2,6 +2,7 @@ const { userModel } = require("../Model/user.model");
 const bcrypt = require("bcrypt") ;
 const jwt = require("jsonwebtoken");
 const env = require("dotenv");
+const productModel = require("../Model/product.model");
 
 env.config()
 
@@ -47,4 +48,37 @@ const userLogin = async(req,res) =>{
     }
 }
 
-module.exports = {createUser, userLogin}
+const addToWishlist = async(req,res) =>{
+  try {
+    const {userId, item} = req.body;
+   
+
+    const user = await userModel.findById(userId);
+    
+    if(!user){
+      return res.status(400).send({message: " User not found"})
+    }
+    
+    const productData = await productModel.findById(item._id);
+    if (!productData) {
+      return res.status(400).send({ message: "Product not found" });
+    }
+
+    const exist =  user.wishlist.find((data)=>data?._id.toString() === item?._id);
+    if(exist) {
+      console.log("exist",exist);
+      return res.status(400).send({message:"already in wishlist"}); 
+    }
+
+    user.wishlist.push(item);
+    await user.save();
+
+    return res.status(200).send({message: "Product added to wishlist"})
+    
+  } catch (error) {
+    console.log(error);
+    
+  }
+};
+
+module.exports = {createUser, userLogin, addToWishlist}

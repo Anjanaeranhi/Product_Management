@@ -1,39 +1,22 @@
+const { categoryModel } = require("../Model/category.model");
 const productModel = require("../Model/product.model");
 
 const AddProduct = async(req,res) =>{
     try {
-        const {title, category, subcategory, description} = req.body
-        // console.log(title);
-        // const variants = [];
-        // const variantkey = Object.keys(req.body).filter(key => key.startsWith('variants'));
-
-        // const variantMap = {};
-
-        // variantkey.forEach((key) => {
-        //     const match = key.match(/variants\[(\d+)]\[(\w+)]/);
-        //     if(match) {
-        //         const index = match[1];
-        //         const field = match[2];
-        //         if(!variantMap[index]) variantMap[index] = {}
-        //         variantMap[index][field] = req.body[key];
-        //     }
-        // });
-        // for(let index in variantMap) {
-        //     variants.push(variantMap[index])
-        // }
+        const {title, subcategory, description} = req.body
+       
         let variants = [];
         if (typeof req.body.variants === 'string') {
-        // When sent as a JSON string (from FormData)
+        
         variants = JSON.parse(req.body.variants);
         } else if (Array.isArray(req.body.variants)) {
-        // Already parsed (when sent as raw JSON)
+        
         variants = req.body.variants;
         }
         console.log('Raw body:', req.body);
 
         const data = {
             title,
-            category,
             subcategory,
             description,
             variants,
@@ -58,4 +41,30 @@ const getProduct =  async(req,res) =>{
     }
 }
 
-module.exports = {AddProduct, getProduct}
+
+const getCategProduct =  async(req,res) =>{
+    try {
+        const {CatId,SubCatName} = req.body
+        console.log(CatId.CatId);
+        console.log(SubCatName);
+        
+        const categ = await categoryModel.findById(CatId.CatId);
+        if(!categ){
+            return res.status(404).send({message: "No Category found"})
+        }
+        console.log(categ);
+        
+        
+        
+        return res.status(200).send()
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({message:"Internal server error"})
+    }
+}
+
+
+
+
+
+module.exports = {AddProduct, getProduct, getCategProduct}
