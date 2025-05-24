@@ -37,6 +37,8 @@ const SignUp = () => {
                 goToHome()
                 resetForm();
                 dispatch(createUser(data))
+                localStorage.setItem('token', data.token);
+                // localStorage.setItem('user', JSON.stringify(data.user));
             } catch (error) {
                 console.log(error);
                 toast.error(error?.response?.data?.message || "Something went wrong")

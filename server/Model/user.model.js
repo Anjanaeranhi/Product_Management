@@ -16,7 +16,7 @@ const schema = Schema({
     wishlist : [
         {
             id : Number,
-            name : String,
+            title : String,
             description : String,
         }
     ],

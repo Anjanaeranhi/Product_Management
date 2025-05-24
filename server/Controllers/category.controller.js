@@ -62,5 +62,18 @@ const getSubcategories = async(req,res) =>{
     }
 }
 
+const getAllSubCategory = async(req,res) =>{
+    try {
+        const data = await categoryModel.find();
+        const allSubs = data.flatMap(item => item.subcategory);
+        console.log(allSubs);
+        
+        return res.status(200).send(allSubs)
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({message:"Internal server error"})
+    }
+}
 
-module.exports = {addCategory, getCategory, addSubcategory, getSubcategories}
+
+module.exports = {addCategory, getCategory, addSubcategory, getSubcategories, getAllSubCategory}

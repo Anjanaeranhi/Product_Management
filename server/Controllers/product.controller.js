@@ -3,7 +3,14 @@ const productModel = require("../Model/product.model");
 
 const AddProduct = async(req,res) =>{
     try {
-        const {title, subcategory, description} = req.body
+        const {title, subcategory, description} = req.body;
+        const sub = await categoryModel.find();
+        const allSubs = sub.flatMap(item => item.subcategory);
+        console.log(allSubs);
+
+        if (!allSubs.includes(subcategory)) {
+            return res.status(400).send({ message: "Invalid subcategory" });
+        }
        
         let variants = [];
         if (typeof req.body.variants === 'string') {
@@ -20,7 +27,7 @@ const AddProduct = async(req,res) =>{
             subcategory,
             description,
             variants,
-            images : req.files.map(file => file.name),
+            images : req.files.map(file => file.filename),
         }
         const product = await productModel.create(data);
         

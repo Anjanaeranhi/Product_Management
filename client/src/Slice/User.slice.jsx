@@ -9,8 +9,11 @@ const userSlice = createSlice({
         createUser : (state, action) =>{
             state.userData = action.payload;
         }
+    },
+    setUserFromStorage: (state, action) => {
+      state.userData = action.payload;
     }
 });
 
-export const {createUser} = userSlice.actions
+export const {createUser, setUserFromStorage } = userSlice.actions
 export const userReducer = userSlice.reducer;

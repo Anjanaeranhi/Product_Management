@@ -8,9 +8,18 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import AddProductModal from '../Components/AddProductModal';
 import { api } from '../axios';
 import { FaHeart } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
 
 const HomePage = () => {
+    
+    // localStorage.getItem('access_token');
+    // localStorage.getItem('user');
+    const [allSubcategories, setAllSubcategories] = useState([]);
 
+    const [showWishlist, setShowWishlist] = useState(false);
+
+    localStorage.getItem('token');
+    
     const [searchItem, setSearchItem] = useState([]);
     const [search, setSearch] = useState("");
 
@@ -124,8 +133,12 @@ const HomePage = () => {
         const ShowProducts = async() =>{
             try {
                 const {data} = await api.get("/products");
-                console.log(data);
+                console.log("Products>>>",data);
                 setProduct(data);
+                // const newProduct = data;
+                // if (onProductAdded) {
+                //     onProductAdded(newProduct);  // Pass the new product back to parent
+                // }
 
             } catch (error) {
                 console.log(error);
@@ -134,6 +147,11 @@ const HomePage = () => {
         }
         ShowProducts()
     },[])
+
+    
+    const handleProductAdded = (newProduct) => {
+        setProduct(prev => [newProduct, ...prev]);
+        };
 
     const handleProduct = async(CatId, SubCatName) =>{
         try {
@@ -162,11 +180,59 @@ const HomePage = () => {
         toast.success(response.data.message);
         const res = await api.get(`/wishlist/${userId}`);
         setWishItems(res?.data);
+        console.log("Wishitems",wishItems);
+        
         } catch (error) {
         console.log(error?.message);
-        toast.error(error?.message);
+        toast.error(error?.response?.data?.message);
         }
     };
+
+    useEffect(() => {
+    const fetchWishlist = async () => {
+        try {
+        const res = await api.get(`/wishlist/${userId}`);
+        setWishItems(res?.data);
+        } catch (error) {
+        toast.error("Failed to load wishlist");
+        }
+        };
+
+        if (userId) {
+            fetchWishlist();
+        }
+    }, [userId]);
+
+    const removeWishlist = async ({ userId, productId }) => {
+        try {
+        const { data } = await api.delete(`/wishlist/${userId}/${productId}`);
+        toast.success(data.message);
+        const res = await api.get(`/wishlist/${userId}`);
+        setWishItems(res?.data);
+        } catch (error) {
+        toast.error(error?.response?.data?.message);
+        }
+    };
+
+
+    useEffect(()=>{
+        const getAllSubs = async() =>{
+        try {
+            const {data} = await api.get("/getallsubcategories");
+            console.log(data);
+            // const subs = data.flatMap(item => item.subcategory);
+        
+            setAllSubcategories(data);
+            console.log("Subsss>>", allSubcategories);
+            
+            
+        } catch (error) {
+            console.log(error?.message);
+            toast.error(error?.response?.data?.message);
+        }
+    }
+    getAllSubs()
+    },[])
     
     return (
         <Fragment>
@@ -181,7 +247,7 @@ const HomePage = () => {
                     <div className=' d-flex ' style={{marginLeft:"30%"}}>
                         <CiHeart size={30} />
                         <div  style={{width: "20px",height: "20px",borderRadius: "50%",background: "#F1AE32",display: "flex",justifyContent: "center",alignItems: "center",color: "white" }}>
-                            <span style={{fontSize:"13px"}}>0</span>
+                            <span style={{fontSize:"13px", cursor:"pointer"}} onClick={() => setShowWishlist(!showWishlist)}>{wishItems?.length}</span>
                         </div>
                         <span className='mx-2' style={{ color:"white" }}>Sign In</span>
                             <CiShoppingCart size={30}/>
@@ -193,7 +259,7 @@ const HomePage = () => {
                 </div>
 
                 <div className='m-4 d-flex justify-content-between'>
-                    <p>Home &gt;</p>
+                    <div><p>Home &gt;</p></div>
                     <div >
                         <button className='btn mx-3' style={{background:"#F1AE32"}} onClick={handleOpenModal}>Add category</button>
                         <button className='btn mx-3' style={{background:"#F1AE32"}} onClick={handleSubModalOpen}>Add sub catagory</button>
@@ -245,7 +311,7 @@ const HomePage = () => {
                                 <Card.Text>
                                 {item.variants.map((variant, index) => (
                                     <div key={index} className='d-flex justify-content-between'>
-                                        <p>${variant.price}</p>
+                                        <div>${variant.price}</div>
                                         <FaHeart
                                         className="fs-4"
                                         onClick={() => {
@@ -259,7 +325,7 @@ const HomePage = () => {
                                             }
                                         }}
                                         style={{
-                                            color: wishItems.find((item) => item?._id === product?._id)
+                                            color: wishItems.find((wish) => wish?._id === item?._id)
                                             ? "red"
                                             : "grey",
                                             cursor: "pointer",
@@ -311,7 +377,39 @@ const HomePage = () => {
                     </Form>
                 </Modal.Body>
                 </Modal>
-                <AddProductModal show={showModal} handleClose={() => setShowModal(false)} />
+                <AddProductModal onProductAdded={handleProductAdded} show={showModal} handleClose={() => setShowModal(false)} />
+                {showWishlist && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    right: 0,
+                    width: '300px',
+                    height: '100vh',
+                    backgroundColor: '#fff',
+                    borderLeft: '1px solid #ccc',
+                    boxShadow: '-2px 0 5px rgba(0,0,0,0.2)',
+                    zIndex: 999,
+                    padding: '20px',
+                    overflowY: 'auto'
+                }}>
+                    <h4>Wishlist Items</h4>
+                    <button onClick={() => setShowWishlist(false)} style={{ float: 'right' }}>
+                        <IoClose />
+                    </button>
+                    <ul style={{ paddingLeft: '20px' }}>
+                    {wishItems.length === 0 ? (
+                        <li>No items in wishlist.</li>
+                    ) : (
+                        wishItems.map(item => (
+                        // <li key={item._id}>{item.name}</li>
+                        <div key={item._id}>{item.description}</div>
+                        ))
+                    )}
+                    </ul>
+                </div>
+                )}
+                
+
 
             </div>
         </Fragment>

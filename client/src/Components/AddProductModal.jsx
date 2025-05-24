@@ -3,7 +3,7 @@ import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 import toast from 'react-hot-toast';
 import { api } from '../axios';
 
-const AddProductModal = ({ show, handleClose }) => {
+const AddProductModal = ({ show, handleClose, onProductAdded }) => {
   const initialVariant = { ram: '', price: '', qty: 1 };
 
   const [variants, setVariants] = useState([initialVariant]);
@@ -12,6 +12,7 @@ const AddProductModal = ({ show, handleClose }) => {
   const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
   const [description, setDescription] = useState('');
+  // const [allSubcategories, setAllSubcategories] = useState([]);
 
   const handleVariantChange = (index, field, value) => {
     const updatedVariants = [...variants];
@@ -43,7 +44,6 @@ const AddProductModal = ({ show, handleClose }) => {
   try {
     const formData = new FormData();
     formData.append('title', title);
-    formData.append('category', category);
     formData.append('subcategory', subcategory);
     formData.append('description', description);
 
@@ -61,17 +61,42 @@ const AddProductModal = ({ show, handleClose }) => {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
+    const newProduct = data?.product || values;
+
     // console.log("datas of product", data);
     // console.log("FormData", formData);
     
+    if (onProductAdded) {
+        onProductAdded(newProduct);  // pass the newly added product back to HomePage
+    }
 
     toast.success("Product added successfully");
+
+    
     handleDiscard(); 
   } catch (error) {
     console.log(error);
     toast.error(error?.response?.data?.message || "Something went wrong");
   }
 };
+
+    // useEffect(()=>{
+    //     const getAllSubs = async() =>{
+    //     try {
+    //         const {data} = await api.get("/getallsubcategories");
+    //         console.log(data);
+    //         const subs = data.flatMap(item => item.subcategory);
+        
+    //         setAllSubcategories(subs);
+    //         // console.log("Subsss>>", allSubcategories); 
+            
+    //     } catch (error) {
+    //         console.log(error?.message);
+    //         toast.error(error?.response?.data?.message);
+    //     }
+    // }
+    // getAllSubs()
+    // },[])
 
 
   return (

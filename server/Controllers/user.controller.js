@@ -40,7 +40,8 @@ const userLogin = async(req,res) =>{
         if(!check){
             return res.status(404).send({message: "Password doesn't match"})
         }
-        const token = jwt.sign({sub: exist}, process.env.SEC_KEY, {expiresIn:"7d"});
+        const token = jwt.sign({sub: exist}, process.env.SEC_KEY, {expiresIn:"10d"});
+        // const refreshToken = jwt.sign({ sub: exist._id }, process.env.REFRESH_KEY, { expiresIn: "7d" });
         return res.status(200).send({message: "Logged In Successfully", token, user}) 
     } catch (error) {
         console.log(error);
@@ -81,4 +82,53 @@ const addToWishlist = async(req,res) =>{
   }
 };
 
-module.exports = {createUser, userLogin, addToWishlist}
+const viewWishlist = async(req,res) =>{
+  const { userId } = req.params;
+  // console.log("UserId: ",userId);
+  
+  try {
+    const user = await userModel.findById(userId);
+    if (!user) return res.status(404).send({ message: "User not found" });
+    
+    res.status(200).send(user.wishlist); 
+  } catch (err) {
+    res.status(500).send({ message: "Internal server error" ,err});
+  }
+}
+
+
+const removeFromWishlist = async(req,res) =>{
+  const {userId, productId} =req.params
+  // console.log(userId);
+  try {
+  const user = await userModel.findById(userId);
+  // console.log(user);
+  
+  if(!user){
+    return res.status(400).send({message:"User not found"})
+  }
+  // const product = user.wishlist.find((item)=> item.id==productId);
+  // if(!product){
+  //   return res.status(400).send({message:"Product is not in wishlist"})
+  // }
+
+  const index = user.wishlist.findIndex((item) => item?._id.toString() === productId);
+    if (index === -1) {
+      return res.status(400).send({ message: "Product not found in wishlist" });
+    }
+
+    
+    user.wishlist.splice(index, 1);
+    await user.save();
+
+    return res.status(200).send({message:"Product removed from wishlist",user});
+
+  
+    
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: "Internal server error" });
+  }
+}
+
+module.exports = {createUser, userLogin, addToWishlist, viewWishlist, removeFromWishlist}
